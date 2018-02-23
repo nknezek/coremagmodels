@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib as mpl
 from mpl_toolkits.basemap import Basemap
 
-def plot_DH(DH, newfig=True, symmetric_color_scale=True, clbl='scale', title='title', zmax=None):
-    '''
+def pcolormesh_DH(DH, newfig=True, symmetric_color_scale=True, clbl='scale', title='title', zmax=None):
+    """
     plots data on a Driscoll-Healy grid
 
     :param DH:
@@ -14,7 +14,7 @@ def plot_DH(DH, newfig=True, symmetric_color_scale=True, clbl='scale', title='ti
     :param tit:
     :param zmax:
     :return:
-    '''
+    """
     cm = mpl.cm.PuOr_r
     ph = np.linspace(-180, 180, DH.shape[1], endpoint=False)
     th = np.linspace(90, -90, DH.shape[0], endpoint=False)
@@ -39,8 +39,8 @@ def plot_DH(DH, newfig=True, symmetric_color_scale=True, clbl='scale', title='ti
     plt.title(title)
     plt.grid()
 
-def plot_quiver(zth, zph, newfig=True, title='title'):
-    '''
+def quiver_DH(zth, zph, newfig=True, title='title'):
+    """
     plots a vector field
 
     :param zth:
@@ -48,7 +48,7 @@ def plot_quiver(zth, zph, newfig=True, title='title'):
     :param fig:
     :param title:
     :return:
-    '''
+    """
     ph = np.linspace(-180,180,zph.shape[1],endpoint=False)
     th = np.linspace(90,-90,zph.shape[0],endpoint=False)
     if newfig:
@@ -70,8 +70,8 @@ def plot_quiver(zth, zph, newfig=True, title='title'):
     plt.yticks(np.linspace(-90,90,5))
     plt.grid()
 
-def plot_base_quiver(zth, zph, newfig=True, title='title', proj='robin', lon_0=0., qarr_scale_mod=1, qkey=10., units='xy'):
-    '''
+def base_quiver(zth, zph, newfig=True, title='title', proj='robin', lon_0=0., qarr_scale_mod=1, qkey=10., units='xy'):
+    """
     Plots a vector field on a map of the earth
 
     :param zth:
@@ -82,7 +82,7 @@ def plot_base_quiver(zth, zph, newfig=True, title='title', proj='robin', lon_0=0
     :param lon_0:
     :return:
         plot of the earth with vector field
-    '''
+    """
     if newfig:
         plt.figure(figsize=(8,5))
     ph = np.linspace(-180,180,zph.shape[1],endpoint=False)
@@ -100,8 +100,8 @@ def plot_base_quiver(zth, zph, newfig=True, title='title', proj='robin', lon_0=0
         qk = plt.quiverkey(Q, 0.12, 0.1, qkey, '{0:.1f} km/yr'.format(qkey), labelpos='W')
     plt.title(title)
 
-def plot_base_DH(DH, newfig=True, title='title', symmetric_color_scale=True, clbl='scale', proj='moll', lon_0=0., zmax=None, plot_cbar=True, coastlw=0.5):
-    '''
+def base_DH(DH, newfig=True, title='title', symmetric_color_scale=True, clbl='scale', proj='moll', lon_0=0., zmax=None, cbar=True, coastlw=0.5):
+    """
     plots data on a Driscoll-Healy grid onto a map of the Earth
 
     :param DH:
@@ -113,7 +113,7 @@ def plot_base_DH(DH, newfig=True, title='title', symmetric_color_scale=True, clb
     :param lon_0:
     :param zmax:
     :return:
-    '''
+    """
     if newfig:
         plt.figure(figsize=(8, 5))
     cm = mpl.cm.PuOr_r
@@ -134,14 +134,14 @@ def plot_base_DH(DH, newfig=True, title='title', symmetric_color_scale=True, clb
     im = m.pcolormesh(pp, tt, DH, vmin=vmin, vmax=vmax, cmap=cm, latlon=True)
     m.drawcoastlines(linewidth=coastlw)
     plt.title(title)
-    if plot_cbar:
+    if cbar:
         cb = m.colorbar(im, "bottom", size="5%", pad="2%")
         cb.set_label(clbl)
     return im
 
-def plot_contourf_DH(DH, newfig=True, title='title', symmetric_color_scale=True, clbl='scale', proj='robin',
-                     lon_0=0., zmax=None, plot_cbar=True, coastlw=0.5, cfmt=None):
-    '''
+def contourf_DH(DH, newfig=True, title='title', symmetric_color_scale=True, clbl='scale', proj='robin',
+                     lon_0=0., zmax=None, cbar=True, coastlw=0.5, cfmt=None):
+    """
     plots data on a Driscoll-Healy grid onto a map of the Earth
 
     :param DH:
@@ -153,7 +153,7 @@ def plot_contourf_DH(DH, newfig=True, title='title', symmetric_color_scale=True,
     :param lon_0:
     :param zmax:
     :return:
-    '''
+    """
     if newfig:
         plt.figure(figsize=(8, 5))
     cm = mpl.cm.PuOr_r
@@ -172,12 +172,12 @@ def plot_contourf_DH(DH, newfig=True, title='title', symmetric_color_scale=True,
     im = m.contourf(pp, tt, DH, contours, cmap=cm, latlon=True)
     m.drawcoastlines(linewidth=coastlw)
     plt.title(title)
-    if plot_cbar:
+    if cbar:
         cb = m.colorbar(im, "bottom", size="5%", pad="2%", format=cfmt)
         cb.set_label(clbl)
     return im
 
-def plot_period_wavenumber(m, freq, yf, Tmin=2.5, Tmax=24, m_max=12, Nylabels=10, title='period-wavenumber',
+def period_wavenumber(m, freq, yf, Tmin=2.5, Tmax=24, m_max=12, Nylabels=10, title='period-wavenumber',
                            savefig=False, logfft=False, vmin=None, vmax=None, newfig=False, colorbar=True, cblbl=None, cbfmt=None):
     if newfig:
         plt.figure(figsize=(7, 5))
@@ -209,7 +209,7 @@ def plot_period_wavenumber(m, freq, yf, Tmin=2.5, Tmax=24, m_max=12, Nylabels=10
         plt.savefig(title + '.png')
     return f
 
-def plot_period_wavenumber_contourf(m, freq, yf, Tmin=2.5, Tmax=24, m_max=12, Nylabels=10, title='period-wavenumber',
+def period_wavenumber_contourf(m, freq, yf, Tmin=2.5, Tmax=24, m_max=12, Nylabels=10, title='period-wavenumber',
                            savefig=False, logfft=False, vmin=None, vmax=None, newfig=False, colorbar=True, cblbl=None, cbfmt=None,
                                     over_color='black', under_color='white', extend='both'):
 
@@ -252,7 +252,7 @@ def plot_period_wavenumber_contourf(m, freq, yf, Tmin=2.5, Tmax=24, m_max=12, Ny
         plt.savefig(title + '.png')
     return f
 
-def plot_longitudetime(z, T, title='Longitude vs Time', newfig=False, vmin=None, vmax=None):
+def longitudetime(z, T, title='Longitude vs Time', newfig=False, vmin=None, vmax=None):
     T_plt = T
     ph_plt = np.linspace(0, 360, z.shape[1])
     xx, yy = np.meshgrid(ph_plt, T_plt)
@@ -269,36 +269,36 @@ def plot_longitudetime(z, T, title='Longitude vs Time', newfig=False, vmin=None,
     plt.ylabel('Time (yr)')
     plt.title(title)
 
-def plot_2pcolor(z1, z2, newfig=True, title1='title 1', title2='title 2', symmetric_color_scale=True,
-                 clbl='scale', proj='moll', lon_0=0., zmax=None, plot_cbar=True, savename=None, cfmt='%.1f'):
+def two_pcolor(z1, z2, newfig=True, title1='title 1', title2='title 2', symmetric_color_scale=True,
+                 clbl='scale', proj='moll', lon_0=0., zmax=None, cbar=True, savename=None, cfmt='%.1f'):
     if newfig:
         fig = plt.figure(figsize=(10, 4))
     plt.subplot(121)
-    plot_base_DH(z1, newfig=False, title=title1, proj=proj, zmax=zmax, plot_cbar=False, lon_0=lon_0,
+    base_DH(z1, newfig=False, title=title1, proj=proj, zmax=zmax, cbar=False, lon_0=lon_0,
                       symmetric_color_scale=symmetric_color_scale)
     plt.subplot(122)
-    f = plot_base_DH(z2, newfig=False, title=title2, proj=proj, zmax=zmax, plot_cbar=False, lon_0=lon_0,
+    f = base_DH(z2, newfig=False, title=title2, proj=proj, zmax=zmax, cbar=False, lon_0=lon_0,
                           symmetric_color_scale=symmetric_color_scale)
 
     plt.tight_layout()
-    if plot_cbar:
+    if cbar:
         plt.subplots_adjust(right=0.9)
         cbar_ax = fig.add_axes([0.92, 0.25, 0.02, 0.5])
         fig.colorbar(f, cax=cbar_ax, label=clbl, format=cfmt)
     if savename:
         plt.savefig(savename)
 
-def plot_2pwn_contourf(m, freq, yf1, yf2, title1='title 1', title2='title 2', newfig=True, Tmin=2.5, Tmax=24, m_max=12, Nylabels=10,
+def two_pwn_contourf(m, freq, yf1, yf2, title1='title 1', title2='title 2', newfig=True, Tmin=2.5, Tmax=24, m_max=12, Nylabels=10,
                         logfft=False,over_color='black', under_color='white', extend='both', vmin=0.1, vmax=10.,
-                       cblbl=None, plot_cbar=True, savename=None, cbfmt=None):
+                       cblbl=None, cbar=True, savename=None, cbfmt=None):
     if newfig:
         fig = plt.figure(figsize=(10, 4))
     plt.subplot(121)
-    plot_period_wavenumber_contourf(m, freq, yf1, Tmin=Tmin, Tmax=Tmax, m_max=m_max, Nylabels=Nylabels, title=title1,
+    period_wavenumber_contourf(m, freq, yf1, Tmin=Tmin, Tmax=Tmax, m_max=m_max, Nylabels=Nylabels, title=title1,
                            savefig=False, logfft=logfft, vmin=vmin, vmax=vmax, newfig=False, colorbar=False, cblbl=None, cbfmt=None,
                                     over_color=over_color, under_color=under_color, extend=extend)
     plt.subplot(122)
-    f = plot_period_wavenumber_contourf(m, freq, yf2, Tmin=Tmin, Tmax=Tmax, m_max=m_max, Nylabels=Nylabels, title=title2,
+    f = period_wavenumber_contourf(m, freq, yf2, Tmin=Tmin, Tmax=Tmax, m_max=m_max, Nylabels=Nylabels, title=title2,
                            savefig=False, logfft=logfft, vmin=vmin, vmax=vmax, newfig=False, colorbar=False, cblbl=None, cbfmt=None,
                                     over_color=over_color, under_color=under_color, extend=extend)
     if cblbl is None:
@@ -309,7 +309,7 @@ def plot_2pwn_contourf(m, freq, yf1, yf2, title1='title 1', title2='title 2', ne
     if cbfmt is None:
         cbfmt = '%.1e'
     plt.tight_layout()
-    if plot_cbar:
+    if cbar:
         plt.subplots_adjust(right=0.9)
         cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.75])
         fig.colorbar(f, cax=cbar_ax, label=cblbl, format=cbfmt)
@@ -317,26 +317,26 @@ def plot_2pwn_contourf(m, freq, yf1, yf2, title1='title 1', title2='title 2', ne
         plt.savefig(savename)
     return fig
 
-def plot_2contourf(z1, z2, newfig=True, title1='title 1', title2='title 2', symmetric_color_scale=True,
-                 clbl='scale', proj='moll', lon_0=0., zmax=None, plot_cbar=True, savename=None, cfmt='%.1f'):
+def two_contourf(z1, z2, newfig=True, title1='title 1', title2='title 2', symmetric_color_scale=True,
+                 clbl='scale', proj='moll', lon_0=0., zmax=None, cbar=True, savename=None, cfmt='%.1f'):
     if newfig:
         fig = plt.figure(figsize=(10, 4))
     plt.subplot(121)
-    plot_contourf_DH(z1, newfig=False, title=title1, proj=proj, zmax=zmax, plot_cbar=False, lon_0=lon_0,
+    contourf_DH(z1, newfig=False, title=title1, proj=proj, zmax=zmax, cbar=False, lon_0=lon_0,
                           symmetric_color_scale=symmetric_color_scale)
     plt.subplot(122)
-    f = plot_contourf_DH(z2, newfig=False, title=title2, proj=proj, zmax=zmax, plot_cbar=False, lon_0=lon_0,
+    f = contourf_DH(z2, newfig=False, title=title2, proj=proj, zmax=zmax, cbar=False, lon_0=lon_0,
                               symmetric_color_scale=symmetric_color_scale)
 
     plt.tight_layout()
-    if plot_cbar:
+    if cbar:
         plt.subplots_adjust(right=0.9)
         cbar_ax = fig.add_axes([0.92, 0.25, 0.02, 0.5])
         fig.colorbar(f, cax=cbar_ax, label=clbl, format=cfmt)
     if savename:
         plt.savefig(savename)
 
-def plot_vs_latitude(th, z, title='', savename=None):
+def vs_latitude(th, z, title='', savename=None):
     lat = th-90
     plt.figure(figsize=(8,4))
     plt.plot(lat, z)
@@ -347,10 +347,10 @@ def plot_vs_latitude(th, z, title='', savename=None):
         plt.savefig(savename)
     plt.xlabel('degrees latitude')
 
-def plot_correlation_contourf(phases, periods, corr, title='Correlation', newfig=False, savename=None,
+def correlation_contourf(phases, periods, corr, title='Correlation', newfig=False, savename=None,
                               colorbar=True, cblbl=None, cbfmt=None, vmin=None, vmax=None,
                               over_color='white', under_color='black', extend='neither', cmap='RdBu_r', real_period=None, real_phase=None, real_markersize=10):
-    ''' plot the reuslts of sweeping the correlation across phase and period
+    """ plot the reuslts of sweeping the correlation across phase and period
 
     :param periods:
     :param corr:
@@ -367,7 +367,7 @@ def plot_correlation_contourf(phases, periods, corr, title='Correlation', newfig
     :param extend:
     :param cmap:
     :return:
-    '''
+    """
     z = np.array(corr.T)
     z = np.concatenate((z,-z), axis=1)
     phase_plt = np.linspace(0,360,len(phases)*2, endpoint=False)
@@ -402,7 +402,7 @@ def plot_correlation_contourf(phases, periods, corr, title='Correlation', newfig
         plt.savefig(savename)
     return f
 
-def plot_amplitude_fit_2waves(amp_swept, amp_min, amp_max, Namps, newfig=False, title='Amplitude Fit for Two Waves',
+def amplitude_fit_2waves(amp_swept, amp_min, amp_max, Namps, newfig=False, title='Amplitude Fit for Two Waves',
                               savename=None, clbl=None, cfmt=None, over_color='Black', under_color='white',
                               extend='both',
                               vmin=None, vmax=None, real_amp1=None, real_amp2=None, xlbl=None, ylbl=None):
@@ -438,15 +438,15 @@ def plot_amplitude_fit_2waves(amp_swept, amp_min, amp_max, Namps, newfig=False, 
     if savename:
         plt.savefig(savename)
 
-def plot_lm_contourf(svrcilm, l_pltmax=14, vmax=None, title='Residual Spectral power at l and m'):
-    ''' plots spherical harmonic power at each l,m in a contour plot
+def lm_contourf(svrcilm, l_pltmax=14, vmax=None, title='Residual Spectral power at l and m'):
+    """ plots spherical harmonic power at each l,m in a contour plot
 
     :param svrcilm:
     :param l_pltmax:
     :param vmax:
     :param title:
     :return:
-    '''
+    """
     svr_mag = (svrcilm[0, :, :] ** 2 + svrcilm[1, :, :] ** 2) ** 0.5
     if vmax is None:
         vmax = np.max(np.abs(svr_mag))
@@ -457,15 +457,15 @@ def plot_lm_contourf(svrcilm, l_pltmax=14, vmax=None, title='Residual Spectral p
     plt.title(title)
     plt.colorbar(label='coefficient magnitude in orthonormal norm')
 
-def plot_lm_dots(svrcilm, l_pltmax=14, ymax=None, title='Residual Spectral power at l and m'):
-    '''plots spherical harmonics power at each l,m vs l with points for each m
+def lm_dots(svrcilm, l_pltmax=14, ymax=None, title='Residual Spectral power at l and m'):
+    """plots spherical harmonics power at each l,m vs l with points for each m
 
     :param svrcilm:
     :param l_pltmax:
     :param ymax:
     :param title:
     :return:
-    '''
+    """
     for l in range(0, l_pltmax + 1):
         ls = (svrcilm[0, l:l_pltmax + 1, l] ** 2 + svrcilm[1, l:l_pltmax + 1, l] ** 2) ** 0.5
         plt.plot(range(l, l_pltmax + 1), ls, '.')
@@ -475,9 +475,9 @@ def plot_lm_dots(svrcilm, l_pltmax=14, ymax=None, title='Residual Spectral power
     plt.ylabel('power')
     plt.title(title)
 
-def plot_fft_coeffs_mag(lm_fft, Nfft=None, fits=None, sdls=None, sdhs=None, deg_fits=[1, 2, 2, 2, 2], log=False,
+def fft_coeffs_mag(lm_fft, svn, Nfft=None, fits=None, sdls=None, sdhs=None, deg_fits=(1, 2, 2, 2, 2), log=False,
                         title='Actual', ls='.-', ymax=None):
-    ''' plots the magnitude of individual fft coefficients
+    """ plots the magnitude of individual fft coefficients
 
     :param lm_fft:
     :param Nfft:
@@ -489,8 +489,7 @@ def plot_fft_coeffs_mag(lm_fft, Nfft=None, fits=None, sdls=None, sdhs=None, deg_
     :param title:
     :param ls:
     :return:
-    '''
-    mvn = SV_noisemodel()
+    """
     l_max = lm_fft.shape[0]-1
 
     if Nfft is None:
@@ -505,7 +504,7 @@ def plot_fft_coeffs_mag(lm_fft, Nfft=None, fits=None, sdls=None, sdhs=None, deg_
                 plt.semilogy(range(l, l_max + 1), data[l:, l], ls)
 
             if (fits is None) or (sdls is None) or (sdhs is None):
-                fit, sdl, sdh = mvn.fit_lm_sd_in_log(data, deg=deg_fits[i])
+                fit, sdl, sdh = svn.fit_lm_sd_in_log(data, deg=deg_fits[i])
             else:
                 fit = fits[i, :]
                 sdl = sdls[i, :]
@@ -526,7 +525,7 @@ def plot_fft_coeffs_mag(lm_fft, Nfft=None, fits=None, sdls=None, sdhs=None, deg_
                 plt.plot(range(l, l_max + 1), data[l:, l], ls)
 
             if (fits is None) or (sdls is None) or (sdhs is None):
-                fit, sdl, sdh = mvn.fit_lm_sd_in_linear(data, deg=deg_fits[i])
+                fit, sdl, sdh = svn.fit_lm_sd_in_linear(data, deg=deg_fits[i])
             else:
                 fit = fits[i, :]
                 sdl = sdls[i, :]
@@ -541,13 +540,12 @@ def plot_fft_coeffs_mag(lm_fft, Nfft=None, fits=None, sdls=None, sdhs=None, deg_
             plt.xlabel('l')
             plt.title('{} fft c{}'.format(title, i))
 
-def plot_fft_coeffs_phase(lm_fft, Nfft=None, title='Actual'):
-    mvn = SV_noisemodel()
+def fft_coeffs_phase(lm_fft, svn, Nfft=None, title='Actual'):
     if Nfft is None:
         Nfft = lm_fft.shape[-1]
     l_max = lm_fft.shape[0]-1
     plt.figure(figsize=(16,5))
-    _, phases = mvn.get_lm_magphase(lm_fft)
+    _, phases = svn.get_lm_magphase(lm_fft)
     for i in range(Nfft):
         plt.subplot(1,Nfft,i+1)
         for l in range(lm_fft.shape[0]):

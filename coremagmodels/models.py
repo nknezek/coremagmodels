@@ -24,12 +24,12 @@ _gufmsatQ2_data_file = _os.path.dirname(_os.path.abspath(__file__)) + '/data/guf
 _gufmsatQ3_data_file = _os.path.dirname(_os.path.abspath(__file__)) + '/data/gufm-sat-Q3.txt'
 _chaos6_data_file = _os.path.dirname(_os.path.abspath(__file__)) + '/data/chaos6_data.txt'
 
-class SphereHarmBase():
+class SphereHarmBase:
     def __init__(self):
-        pass
+        self.l_max = None
 
     def SHrcmb2vs(self, Clm_rcmb, r_cmb=3480., r_s=6371.2, l_max=None):
-        '''converts radial 4pm SH at CMB to potential SH at surface
+        """converts radial 4pm SH at CMB to potential SH at surface
 
         Converts a radial field measurement in 4pi normalized spherical harmonics at the CMB to the potential field
         spherical harmonics at the surface.
@@ -44,9 +44,12 @@ class SphereHarmBase():
         Returns
         -------
         Clm_s = coefficients array with 4pi, csphase=1 normalization
-        '''
+        """
         if l_max is None:
-            l_max = self.l_max
+            if self.l_max is None:
+                l_max = 14
+            else:
+                l_max = self.l_max
         Clm_in = self._convert_SHin(Clm_rcmb, l_max=l_max)
         Clm_s = _np.zeros_like(Clm_in)
         for l in range(Clm_in.shape[1]):
@@ -55,7 +58,7 @@ class SphereHarmBase():
         return Clm_s
 
     def _convert_SHin(self, SHin, l_max=None):
-        '''helper function to convert sht classes and arrays for functions
+        """helper function to convert sht classes and arrays for functions
 
         Parameters
         ----------
@@ -65,7 +68,7 @@ class SphereHarmBase():
         Returns
         -------
             np.array of SH coefficients with normalization 4pi, csphase=1
-        '''
+        """
         if type(SHin) is _np.ndarray:
             if SHin.shape[0] == 2 and len(SHin.shape) == 3:
                 if l_max is None:
@@ -90,12 +93,12 @@ class SphereHarmBase():
         return SHout
 
     def get_thvec_phvec_DH(self, Nth=None, l_max=None):
-        '''returns theta and ph coordinate vectors for DH grid
+        """returns theta and ph coordinate vectors for DH grid
 
         :param Nth:
         :param l_max:
         :return:
-        '''
+        """
         if l_max is None:
             l_max = self.l_max
         if Nth is None:
@@ -106,8 +109,32 @@ class SphereHarmBase():
         ph = _np.linspace(dth / 2, 360 - dth / 2, Nph)
         return th, ph
 
+    def _get_lmax(self, SHin):
+        """helper function to get the l_max of a set of spherical harmonics
+
+        :param SHin:
+        :return:
+        """
+        if type(SHin) is _np.ndarray:
+            if SHin.shape[0] == 2 and len(SHin.shape) == 3:
+                l_max = int(SHin.shape[1]-1)
+                if not SHin.shape == (2,l_max + 1,l_max+1):
+                    raise TypeError('SH is not the right shape l_max')
+            elif len(SHin.shape) < 3:
+                l_max = int(SHin.shape[0]**0.5-1)
+                if not SHin.shape[0] == (l_max+1)**2:
+                    raise TypeError('SHin does not contain enough coefficients for requested l_max')
+            else:
+                raise TypeError('SHin not in a recognizable format or the wrong size for l_max')
+        elif (type(SHin) is _sht.shclasses.SHRealCoeffs) or (type(SHin) is _sht.shclasses.SHComplexCoeffs):
+            l_max = int(SHin.lmax)
+        else:
+            raise TypeError('SHin not in a recognizable format or the wrong size for l_max')
+        return l_max
+
 class MagModel(SphereHarmBase):
     def __init__(self, data_file):
+        super(MagModel,self).__init__()
         self.data_file = data_file
         self.gt, self.tknts, self.l_max, self.bspl_order = self._read_data(data_file=self.data_file)
         self.dT = self.tknts[len(self.tknts)//2+1]-self.tknts[len(self.tknts)//2]
@@ -116,18 +143,13 @@ class MagModel(SphereHarmBase):
         self.T_end = self.tknts[-self.bspl_order]
 
     def _read_data(self, data_file=None):
-        '''
+        """ read data from datafile
 
-        Parameters
-        ----------
-        filename
-
-        Returns
-        -------
-
-        '''
+        :param data_file:
+        :return:
+        """
         if data_file is None:
-            datafile = self.data_file
+            data_file = self.data_file
         with open(data_file,'rb') as f:
             f.readline()
             line1 = f.readline().split()
@@ -162,18 +184,13 @@ class MagModel(SphereHarmBase):
         return gt_out, tknts, l_max, bspl_order
 
     def _read_coeffs(self, data_file=None):
-        '''
+        """ read raw coefficients from data file
 
-        Parameters
-        ----------
-        filename
-
-        Returns
-        -------
-
-        '''
+        :param data_file:
+        :return:
+        """
         if data_file is None:
-            datafile = self.data_file
+            data_file = self.data_file
         with open(data_file,'rb') as f:
             f.readline()
             line1 = f.readline().split()
@@ -190,28 +207,32 @@ class MagModel(SphereHarmBase):
         return g_raw, l_max
 
     def _make_bspline_basis(self, tknts, order=None):
+        """ create the bspline basis function for interpolting vs time
+
+        :param tknts:
+        :param order:
+        :return:
+        """
         if order is None:
             order = self.bspl_order
         bspline = _Bspline(tknts, order)
         return bspline
 
     def _interval(self, time):
-        '''
-        Calculates nleft: the index of the timeknot on the left of the interval
+        """Calculates nleft: the index of the timeknot on the left of the interval
+
             tknts[nleft] < tknts[nleft+1]
             tknts[nleft] <= time <= tknts[nleft+1]
 
         Parameters
         ----------
-        tknts:
-            a numpy array containing the timestamps for all knots in the model
         time:
             the time to calculate the field
 
         Returns
         -------
         the index of the time knot on the left of the interval
-        '''
+        """
         tknts = self.tknts
         if (time >= tknts[self.bspl_order-1] and time <= tknts[-self.bspl_order]):
             for n in range(self.bspl_order-1,len(tknts)-self.bspl_order+1):
@@ -224,8 +245,8 @@ class MagModel(SphereHarmBase):
         return nleft
 
     def _Pml(self, x, l, m):
-        """
-        Associated Legendre Polynomial - Schmidt Quasi-Normalization
+        """Associated Legendre Polynomial - Schmidt Quasi-Normalization
+
         ============================================================
         Returns the evaulated Associated Legendre Polynomial of degree n and order m at location x.
 
@@ -294,25 +315,17 @@ class MagModel(SphereHarmBase):
             return 1/(1-x**2)**0.5 * ( -(l+1)*x*self._Pml(x, l, m) + (l+1-m)*(2*_factorial(l-m)/_factorial(l+m))**0.5/(-1)**m*_lpmv(m,l+1,x))
 
     def _calculate_g_raw_at_t(self, time):
-        '''
+        """
         Calculates the Gauss Coefficients in raw ordering given the parameters calculated by inverval() and _bspline().
 
         Parameters
         ----------
-        gt:
-            raw data from gufm1 ((number of coeffs x number of tknts) numpy array)
-        spl:
-            B-spline basis (jorder numpy array)
-        nleft:
-            coordinate of the timeknot to the left of desired time
-        l_max:
-            spherical harmonic degree included in model (14)
-        jorder:
-            order of B-splines (4)
+        time:
+
         Returns
         -------
             Gauss Coefficients for a particular time in raw ordering.
-        '''
+        """
         gt = self.gt
         b = self.bspline(time)
         i = self._interval(time)
@@ -321,7 +334,7 @@ class MagModel(SphereHarmBase):
         return g_raw
 
     # def _convert_g_raw_to_shtarray(self, g_raw, l_max=None):
-    #     '''
+    #     """
     #     Converts g_raw computed for a time to shtools formatted array
     #
     #     Inputs
@@ -335,7 +348,7 @@ class MagModel(SphereHarmBase):
     #     coeffs:
     #         (2,l_max+1, l_max+1) size array of Gauss coefficients where e.g. coeffs[0,2,1] = g(l=2, m=1), coeffs[1,2,0] = h(l=2, m=0)
     #
-    #     '''
+    #     """
     #     if not l_max:
     #         l_max = self.l_max
     #     coeffs = _np.zeros((2,l_max+1, l_max+1))
@@ -354,14 +367,14 @@ class MagModel(SphereHarmBase):
     #     return coeffs
 
     def read_SH_from_file_gufm_form(self, file):
-        '''
+        """
         file:
             filename of file in gufm single-epoch form. First line is title line, second line is l_max, then coefficients
 
         Returns
         -------
             SH_gufm, l_max : _np.array of the raw coefficients and l_max
-        '''
+        """
         with open(file, 'rb') as f:
             f.readline()
             line1 = f.readline().split()
@@ -377,7 +390,7 @@ class MagModel(SphereHarmBase):
         return SH_gufm, l_max
 
     def write_SH_to_file_gufm_form(self, SH, file, heading, l_max, num_per_line=4):
-        '''
+        """
 
         Parameters
         ----------
@@ -390,7 +403,7 @@ class MagModel(SphereHarmBase):
         Returns
         -------
             none
-        '''
+        """
         Bschmidt = SH.get_coeffs(normalization='schmidt', csphase=-1)
         SHv = self._convert_shtarray_to_gufm_form(Bschmidt, l_max=SH.lmax)
         with open(file, 'w') as f:
@@ -406,7 +419,7 @@ class MagModel(SphereHarmBase):
                 i += 1
 
     def _convert_gufm_form_to_shtarray(self, g_raw, l_max=None):
-        '''
+        """
         Converts g_raw computed for a time to shtools formatted array
 
         Inputs
@@ -420,7 +433,7 @@ class MagModel(SphereHarmBase):
         coeffs:
             _sht.SHCoeffs class: (2,l_max+1, l_max+1) size array of Gauss coefficients where e.g. coeffs[0,2,1] = g(l=2, m=1), coeffs[1,2,0] = h(l=2, m=0)
 
-        '''
+        """
         if not l_max:
             l_max = self.l_max
         coeffs = _np.zeros((2, l_max + 1, l_max + 1))
@@ -439,7 +452,7 @@ class MagModel(SphereHarmBase):
         return _sht.SHCoeffs.from_array(coeffs, normalization='schmidt', csphase=-1)
 
     def _convert_shtarray_to_gufm_form(self, shtarray, l_max=None):
-        '''
+        """
         Converts g_raw computed for a time to shtools formatted array
 
         Inputs
@@ -452,7 +465,7 @@ class MagModel(SphereHarmBase):
         -------
         gufm_raw:
             _np.array of length (l_max+1)**2-1 ordered according to the gufm standard
-        '''
+        """
         shtarray = self._convert_SHin(shtarray, l_max=l_max)
         if l_max is None:
             l_max = shtarray.lmax
@@ -467,31 +480,8 @@ class MagModel(SphereHarmBase):
                 raw.append(shtarray[1, l, m])
         return _np.array(raw)
 
-    def _get_lmax(self, SHin):
-        '''helper function to get the l_max of a set of spherical harmonics
-
-        :param SH:
-        :return:
-        '''
-        if type(SHin) is _np.ndarray:
-            if SHin.shape[0] == 2 and len(SHin.shape) == 3:
-                l_max = int(SHin.shape[1]-1)
-                if not SHin.shape == (2,l_max + 1,l_max+1):
-                    raise TypeError('SH is not the right shape l_max')
-            elif len(SHin.shape) < 3:
-                l_max = int(SHin.shape[0]**0.5-1)
-                if not SHin.shape[0] == (l_max+1)**2:
-                    raise TypeError('SHin does not contain enough coefficients for requested l_max')
-            else:
-                raise TypeError('SHin not in a recognizable format or the wrong size for l_max')
-        elif (type(SHin) is _sht.shclasses.SHRealCoeffs) or (type(SHin) is _sht.shclasses.SHComplexCoeffs):
-            l_max = int(SHin.lmax)
-        else:
-            raise TypeError('SHin not in a recognizable format or the wrong size for l_max')
-        return l_max
-
     def _calculate_SVgh_raw_at_t(self, time):
-        '''
+        """
         Calculates the time derivatives of Gauss Coefficients in raw ordering given the parameters calculated by inverval() and _bspline().
 
         Parameters
@@ -502,7 +492,7 @@ class MagModel(SphereHarmBase):
         -------
         SVg_raw:
             Time derivatives of Gauss Coefficients for a particular time in raw ordering.
-        '''
+        """
         gt = self.gt
         SVb = self.bspline.d(time)
         i = self._interval(time)
@@ -511,7 +501,7 @@ class MagModel(SphereHarmBase):
         return SVg_raw
 
     def _calculate_SAgh_raw_at_t(self, time):
-        '''
+        """
         Calculates the second time derivatives of Gauss Coefficients in raw ordering given the parameters calculated by inverval() and _bspline().
 
         Parameters
@@ -522,7 +512,7 @@ class MagModel(SphereHarmBase):
         -------
         SAg_raw:
             Second time derivatives of Gauss Coefficients for a particular time in raw ordering.
-        '''
+        """
         gt = self.gt
         SAb = self.bspline.d2(time)
         i = self._interval(time)
@@ -531,7 +521,7 @@ class MagModel(SphereHarmBase):
         return SAg_raw
 
     def _convert_g_raw_to_gh(self, g_raw, l_max=None):
-        '''
+        """
         Converts g_raw computed for a time to g, h dictionaries
 
         Inputs
@@ -545,7 +535,7 @@ class MagModel(SphereHarmBase):
         g, h:
             dictionaries of Gauss coefficients ordered as g[l][m] and h[l][m]
 
-        '''
+        """
         if not l_max:
             l_max = self.l_max
         g = {}
@@ -568,7 +558,7 @@ class MagModel(SphereHarmBase):
         return g, h
 
     def convert_gh_to_complex(self, g, h, l_max=None):
-        '''
+        """
         converts g,h real spherical harmonics to A complex spherical harmonic.
 
         V(r,th,ph) = a sum_m,l{ \norm(a/r)**(l+1) * ( g_m,l * cos(m*ph) + h_m,l * sin(m*ph) ) * P_m,l(cos(th)) }
@@ -582,7 +572,7 @@ class MagModel(SphereHarmBase):
         Returns
         -------
         c: complex spherical harmonics coefficients
-        '''
+        """
         if not l_max:
             l_max = max(g.keys())
         c = {}
@@ -593,7 +583,7 @@ class MagModel(SphereHarmBase):
         return c
 
     def convert_complex_to_gh(self, c, l_max=None):
-        '''
+        """
         converts c complex spherical harmonic to g,h real spherical harmonics.
 
         V(r,th,ph) = a sum_m,l{ \norm(a/r)**(l+1) * ( g_m,l * cos(m*ph) + h_m,l * sin(m*ph) ) * P_m,l(cos(th)) }
@@ -606,7 +596,7 @@ class MagModel(SphereHarmBase):
         Returns
         -------
         g,h: real spherical harmonics coefficients
-        '''
+        """
         if not l_max:
             l_max = max(c.keys())
         g = {}
@@ -620,7 +610,7 @@ class MagModel(SphereHarmBase):
         return g,h
 
     def get_shtcoeffs_at_t(self, time, l_max=None):
-        '''
+        """
         Calculates Gauss coefficients at time T
 
         Parameters
@@ -633,25 +623,25 @@ class MagModel(SphereHarmBase):
         -------
         coeffs:
             array containing Gauss coefficients at time time
-        '''
+        """
         g_raw = self._calculate_g_raw_at_t(time)
         return self._convert_gufm_form_to_shtarray(g_raw, l_max=l_max)
 
     def get_sht_allT(self, T, l_max=None):
-        '''
+        """
         Calculates Gauss coefficients of secular acceleration at a list or _np.array of times T
 
         :param T: list of _np.array of times (yr)
         :param l_max:
         :return:
-        '''
+        """
         sht_list = []
         for t in T:
             sht_list.append(self.get_shtcoeffs_at_t(t,l_max=l_max))
         return sht_list
 
     def get_SVshtcoeffs_at_t(self, time, l_max=None):
-        '''
+        """
         Calculates Gauss coefficients of secular variation at time T
 
         Parameters
@@ -664,25 +654,25 @@ class MagModel(SphereHarmBase):
         -------
         coeffs:
             array containing Gauss coefficients of secular variation at time time
-        '''
+        """
         g_raw = self._calculate_SVgh_raw_at_t(time)
         return self._convert_gufm_form_to_shtarray(g_raw, l_max=l_max)
 
     def get_SVsht_allT(self, T, l_max=None):
-        '''
+        """
         Calculates Gauss coefficients of secular variation at a list or _np.array of times T
 
         :param T: list of _np.array of times (yr)
         :param l_max:
         :return:
-        '''
+        """
         sht_list = []
         for t in T:
             sht_list.append(self.get_SVshtcoeffs_at_t(t,l_max=l_max))
         return sht_list
 
     def get_SAshtcoeffs_at_t(self, time, l_max=None):
-        '''
+        """
         Calculates Gauss coefficients of secular acceleration at time T
 
         Parameters
@@ -695,25 +685,25 @@ class MagModel(SphereHarmBase):
         -------
         coeffs:
             array containing Gauss coefficients of secular acceleration at time time
-        '''
+        """
         g_raw = self._calculate_SAgh_raw_at_t(time)
         return self._convert_gufm_form_to_shtarray(g_raw, l_max=l_max)
 
     def get_SAsht_allT(self, T, l_max=None):
-        '''
+        """
         Calculates Gauss coefficients of secular acceleration at a list or _np.array of times T
 
         :param T: list of _np.array of times (yr)
         :param l_max:
         :return:
-        '''
+        """
         sht_list = []
         for t in T:
             sht_list.append(self.get_SAshtcoeffs_at_t(t,l_max=l_max))
         return sht_list
 
     def B_sht(self, shtcoeffs, r=3480, Nth=None, l_max=None, a=6371.2):
-        '''
+        """
         Calculates the radial magnetic field on a Driscoll-Healy grid given spherical harmonics coefficients, using shtools
 
         :param shtcoeffs: spherical harmonics coefficients in SHT format
@@ -723,7 +713,7 @@ class MagModel(SphereHarmBase):
         :param a: radius of data (6371.2 km by default)
         :return:
             data on a Nth x Nph grid
-        '''
+        """
 
         if l_max is None:
             l_max = shtcoeffs.lmax
@@ -746,7 +736,7 @@ class MagModel(SphereHarmBase):
         return -out[0]
 
     def B_sht_allT(self, sht_allT, r=3480, Nth=None, l_max=None, a=6371.2):
-        '''
+        """
         Calculates the radial magnetic field on a Driscoll-Healy grid given a list of spherical harmonics coefficients, using shtools
 
         :param sht_allT:
@@ -755,7 +745,7 @@ class MagModel(SphereHarmBase):
         :param l_max:
         :param a:
         :return:
-        '''
+        """
         B0 = self.B_sht(sht_allT[0], r=r, Nth=Nth, l_max=l_max, a=a)
         B_t = _np.empty((len(sht_allT), B0.shape[0], B0.shape[1]))
         for i,sh in enumerate(sht_allT):
@@ -763,7 +753,7 @@ class MagModel(SphereHarmBase):
         return B_t
 
     def gradB_sht(self, shtcoeffs, r=3480, Nth=None, l_max=None, a=6371.2):
-        '''
+        """
         Find the gradient of the B field, given a list of spherical harmonics coefficients
 
         :param shtcoeffs: spherical harmonics of the field in [nT]
@@ -775,7 +765,7 @@ class MagModel(SphereHarmBase):
             drB : radial gradient of the field in [nT/km]
             dthB : latitudinal gradient of the field [nT/km]
             dphB : longitudinal gradient of the field [nT/km]
-        '''
+        """
 
         if type(shtcoeffs) is not _np.ndarray:
             coeffs = shtcoeffs.get_coeffs(normalization='4pi', csphase=1)
@@ -803,82 +793,61 @@ class MagModel(SphereHarmBase):
         return drB_t, dthB_t, dphB_t
 
     def get_gh_at_t(self, time, l_max=None):
-        '''
+        """
         Calculates Gauss coefficients at time T
 
         Parameters
         ----------
         time:
             time to calculate parameters
-        gt:
-            raw data from gufm1 ((number of coeffs x number of tknts) numpy array)
-        tknts:
-            array of time-knots
         l_max:
             spherical harmonic degree included in model (14)
-        jorder:
-            order of B-splines (4)
-        filename:
-            location of raw GUFM1 text file
+
         Returns
         -------
         g_dict, h_dict:
             dictionaries containing Gauss coefficients at time time
-        '''
+        """
         g_raw = self._calculate_g_raw_at_t(time)
         g_dict, h_dict = self._convert_g_raw_to_gh(g_raw, l_max=l_max)
         return g_dict, h_dict
 
     def get_SVgh_at_t(self, time, l_max=None):
-        '''
+        """
         Calculates Gauss coefficients at time T
 
         Parameters
         ----------
         time:
             time to calculate parameters
-        gt:
-            raw data from gufm1 ((number of coeffs x number of tknts) numpy array)
-        tknts:
-            array of time-knots
         l_max:
             spherical harmonic degree included in model (14)
-        jorder:
-            order of B-splines (4)
-        filename:
-            location of raw GUFM1 text file
+
         Returns
         -------
         g_dict, h_dict:
             dictionaries containing Gauss coefficients at time time
-        '''
+        """
         SVg_raw = self._calculate_SVgh_raw_at_t(time)
         SVg_dict, SVh_dict = self._convert_g_raw_to_gh(SVg_raw, l_max=l_max)
         return SVg_dict, SVh_dict
 
     def get_SAgh_at_t(self, time, l_max=None):
-        '''
+        """
         Calculates Gauss coefficients at time T
 
         Parameters
         ----------
         time:
             time to calculate parameters
-        gt:
-            raw data from gufm1 ((number of coeffs x number of tknts) numpy array)
-        tknts:
-            array of time-knots
         l_max:
             spherical harmonic degree included in model (14)
-        jorder:
-            order of B-splines (4)
-        filename:
-            location of raw GUFM1 text file
+
         Returns
         -------
         g_dict, h_dict:
             dictionaries containing Gauss coefficients at time time
-        '''
+        """
         SAg_raw = self._calculate_SAgh_raw_at_t(time)
         SAg_dict, SAh_dict = self._convert_g_raw_to_gh(SAg_raw, l_max=l_max)
         return SAg_dict, SAh_dict
@@ -1052,7 +1021,7 @@ class MagModel(SphereHarmBase):
         return self._Br_for_ml(r,th,ph,SAg,SAh,m,l, a=a)
 
     def Br(self,r,th,ph, g_dict, h_dict, l_max=None):
-        '''
+        """
         Calculates the total radial magnetic field at a particular location, given a dictionary of gauss coefficients.
 
         Inputs
@@ -1073,7 +1042,7 @@ class MagModel(SphereHarmBase):
         Returns
         -------
         Total Br at a particular point (Tesla)
-        '''
+        """
         if l_max is None:
             l_max = max(g_dict.keys())
         Br_sum = 0
@@ -1083,7 +1052,7 @@ class MagModel(SphereHarmBase):
         return Br_sum
 
     def Br_complex(self, r, th, ph, c_dict, l_max=None):
-        '''
+        """
         Calculates the total radial magnetic field at a particular location, give a dictionary of complex gauss coefficients.
 
         Inputs
@@ -1102,7 +1071,7 @@ class MagModel(SphereHarmBase):
         Returns
         -------
         Total Br at a particular point (Tesla, complex)
-        '''
+        """
         if l_max is None:
             l_max = max(c_dict.keys())
         Br_sum = 0
@@ -1112,7 +1081,7 @@ class MagModel(SphereHarmBase):
         return Br_sum
 
     def grad_Br_complex(self,r,th,ph, c_dict, l_max=None):
-        '''
+        """
         Calculates the hoizontal gradient of the total radial magnetic field at a particular location, give a dictionary of complex gauss coefficients.
 
         Inputs
@@ -1131,7 +1100,7 @@ class MagModel(SphereHarmBase):
         Returns
         -------
         grad_theta(Br), grad_phi(Br) at a particular point (Tesla, complex)
-        '''
+        """
         if l_max is None:
             l_max = max(c_dict.keys())
         dth_Br_sum = 0
@@ -1143,7 +1112,7 @@ class MagModel(SphereHarmBase):
         return dth_Br_sum, dph_Br_sum
 
     def SVBr(self,r,th,ph, SVg_dict, SVh_dict, l_max=None):
-        '''
+        """
         Calculates the total radial magnetic field at a particular location, give a dictionary of gauss coefficients.
 
         Inputs
@@ -1164,7 +1133,7 @@ class MagModel(SphereHarmBase):
         Returns
         -------
         Total Br at a particular point (Tesla)
-        '''
+        """
         if l_max is None:
             l_max = max(SVg_dict.keys())
         SVBr_sum = 0
@@ -1174,7 +1143,7 @@ class MagModel(SphereHarmBase):
         return SVBr_sum
 
     def SABr(self,r,th,ph, SAg_dict, SAh_dict, l_max=None):
-        '''
+        """
         Calculates the total radial magnetic field at a particular location, give a dictionary of gauss coefficients.
 
         Inputs
@@ -1195,7 +1164,7 @@ class MagModel(SphereHarmBase):
         Returns
         -------
         Total Br at a particular point (Tesla)
-        '''
+        """
         if l_max is None:
             l_max = max(SAg_dict.keys())
         SABr_sum = 0
