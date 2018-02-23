@@ -1,2 +1,2 @@
-__all__ = ['coremagmodels', 'plot']
-from . import coremagmodels, plot
+__all__ = ['models', 'plot']
+from . import models, plot
