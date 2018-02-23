@@ -6,7 +6,11 @@ This package provides Python code to calculate magnetic fields for a variety of 
 * [GUFM-sat-E3](http://jupiter.ethz.ch/~cfinlay/gufm1.html) 
 * [GUFM-sat-Q2](http://jupiter.ethz.ch/~cfinlay/gufm1.html) 
 * [GUFM-sat-Q3](http://jupiter.ethz.ch/~cfinlay/gufm1.html) 
+
+
+
 future implementations might add
+
 * [COV-OBS.x1](http://www.spacecenter.dk/files/magnetic-models/COV-OBSx1/)
 * IGRF
 * WMM
