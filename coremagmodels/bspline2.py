@@ -1,6 +1,5 @@
 from functools import partial
 import numpy as np
-import matplotlib.pyplot as plt
 
 class memoize(object):
     """
@@ -42,7 +41,6 @@ class memoize(object):
         except KeyError:
             res = cache[key] = self.func(*args, **kw)
         return res
-
 
 class Bspline():
     """
