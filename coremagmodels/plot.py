@@ -1,7 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib as mpl
-from mpl_toolkits.basemap import Basemap
+try:
+    from mpl_toolkits.basemap import Basemap
+except:
+    pass
 
 def pcolormesh_DH(DH, newfig=True, symmetric_color_scale=True, clbl='scale', title='title', zmax=None):
     """
