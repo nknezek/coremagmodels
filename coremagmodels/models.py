@@ -333,38 +333,38 @@ class MagModel(SphereHarmBase):
         g_raw = _sum(b[i:i+bo]*gt[:, i:i+bo], axis=1)
         return g_raw
 
-    # def _convert_g_raw_to_shtarray(self, g_raw, l_max=None):
-    #     """
-    #     Converts g_raw computed for a time to shtools formatted array
-    #
-    #     Inputs
-    #     ------
-    #     g_raw:
-    #         numpy array of g_raw, standard ordering as on single-time g_raw files from website.
-    #     l_max:
-    #         spherical harmonic degree included in model (automatically taken from data_file)
-    #     Returns
-    #     -------
-    #     coeffs:
-    #         (2,l_max+1, l_max+1) size array of Gauss coefficients where e.g. coeffs[0,2,1] = g(l=2, m=1), coeffs[1,2,0] = h(l=2, m=0)
-    #
-    #     """
-    #     if not l_max:
-    #         l_max = self.l_max
-    #     coeffs = _np.zeros((2,l_max+1, l_max+1))
-    #     coeffs[0,1,0] = g_raw[0]
-    #     coeffs[0,1,1] = g_raw[1]
-    #     coeffs[1,1,1] = g_raw[2]
-    #     i = 3
-    #     for l in range(2,l_max+1):
-    #         coeffs[0,l,0] = g_raw[i]
-    #         i += 1
-    #         for m in range(1,l+1):
-    #             coeffs[0,l,m] = g_raw[i]
-    #             i += 1
-    #             coeffs[1,l,m] = g_raw[i]
-    #             i += 1
-    #     return coeffs
+    def _convert_g_raw_to_shtarray(self, g_raw, l_max=None):
+        """ BROKEN -- Converts g_raw computed for a time to shtools formatted array
+
+        Inputs
+        ------
+        g_raw:
+            numpy array of g_raw, standard ordering as on single-time g_raw files from website.
+        l_max:
+            spherical harmonic degree included in model (automatically taken from data_file)
+        Returns
+        -------
+        coeffs:
+            (2,l_max+1, l_max+1) size array of Gauss coefficients where e.g. coeffs[0,2,1] = g(l=2, m=1), coeffs[1,2,0] = h(l=2, m=0)
+
+        """
+        # if not l_max:
+        #     l_max = self.l_max
+        # coeffs = _np.zeros((2,l_max+1, l_max+1))
+        # coeffs[0,1,0] = g_raw[0]
+        # coeffs[0,1,1] = g_raw[1]
+        # coeffs[1,1,1] = g_raw[2]
+        # i = 3
+        # for l in range(2,l_max+1):
+        #     coeffs[0,l,0] = g_raw[i]
+        #     i += 1
+        #     for m in range(1,l+1):
+        #         coeffs[0,l,m] = g_raw[i]
+        #         i += 1
+        #         coeffs[1,l,m] = g_raw[i]
+        #         i += 1
+        # return coeffs
+        raise NotImplementedError("this function doesn't work yet")
 
     def read_SH_from_file_gufm_form(self, file):
         """
