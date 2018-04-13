@@ -1173,6 +1173,29 @@ class MagModel(SphereHarmBase):
                 SABr_sum += self._SABr_for_ml(r,th,ph, SAg_dict[l][m], SAh_dict[l][m], m, l)
         return SABr_sum
 
+    def compute_Bdata_allT(self, T, Nth, l_max=None, B_lmax=None, SV_lmax=None, SA_lmax=None):
+        if l_max is None:
+            l_max = self.l_max
+        if B_lmax is None:
+            B_lmax = l_max
+        if SV_lmax is None:
+            SV_lmax = l_max
+        if SA_lmax is None:
+            SA_lmax = l_max
+        Bsh = self.get_sht_allT(T, l_max=B_lmax)
+        B = self.B_sht_allT(Bsh, Nth=Nth, l_max=B_lmax)
+        _, dthB, dphB = self.gradB_sht_allT(Bsh, Nth=Nth, l_max=B_lmax)
+
+        SVsh = self.get_SVsht_allT(T, l_max=SV_lmax)
+        SV = self.B_sht_allT(SVsh, Nth=Nth, l_max=SV_lmax)
+        _, dthSV, dphSV = self.gradB_sht_allT(SVsh, Nth=Nth, l_max=SV_lmax)
+
+        SAsh = self.get_SAsht_allT(T, l_max=SA_lmax)
+        SA = self.B_sht_allT(SAsh, Nth=Nth, l_max=SA_lmax)
+        _, dthSA, dphSA = self.gradB_sht_allT(SAsh, Nth=Nth, l_max=SA_lmax)
+
+        return (B, dthB, dphB, Bsh, SV, dthSV, dphSV, SVsh, SA, dthSA, dphSA, SAsh)
+
 class Gufm1(MagModel):
     def __init__(self, data_file = _gufm1_data_file):
         self.data_file = data_file
