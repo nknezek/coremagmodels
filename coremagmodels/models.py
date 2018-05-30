@@ -87,7 +87,7 @@ class SphereHarmBase:
             else:
                 raise TypeError('SHin not in a recognizable format or the wrong size for l_max')
         elif (type(SHin) is _sht.shclasses.SHRealCoeffs) or (type(SHin) is _sht.shclasses.SHComplexCoeffs):
-            SHout = SHin.get_coeffs(normalization='4pi', csphase=1, lmax=SHin.lmax)
+            SHout = SHin.to_array(normalization='4pi', csphase=1, lmax=SHin.lmax)
         else:
             raise TypeError('SHin not in a recognizable format or the wrong size for l_max')
         return SHout
@@ -404,7 +404,7 @@ class MagModel(SphereHarmBase):
         -------
             none
         """
-        Bschmidt = SH.get_coeffs(normalization='schmidt', csphase=-1)
+        Bschmidt = SH.to_array(normalization='schmidt', csphase=-1)
         SHv = self._convert_shtarray_to_gufm_form(Bschmidt, l_max=SH.lmax)
         with open(file, 'w') as f:
             f.write(heading + '\n')
@@ -768,7 +768,7 @@ class MagModel(SphereHarmBase):
         """
 
         if type(shtcoeffs) is not _np.ndarray:
-            coeffs = shtcoeffs.get_coeffs(normalization='4pi', csphase=1)
+            coeffs = shtcoeffs.to_array(normalization='4pi', csphase=1)
         else:
             coeffs = shtcoeffs
         if l_max is None:
